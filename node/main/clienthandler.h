@@ -14,7 +14,10 @@ class clientHandler{
 	private:
 		AccelStepper *stepper1;
 		WiFiServer *server;
-    const int alarmMotorDistance = 2048;
+    		const int alarmMotorDistance = 2048;
+		const int openPosition = -2048;
+		const int closedPosition = -4096;
+		const int maxSpeed = 400;
 	public:
 		clientHandler(AccelStepper *_stepper1, WiFiServer *_server);
 		void handleClients();
@@ -32,27 +35,27 @@ clientHandler::clientHandler(AccelStepper *_stepper1, WiFiServer *_server)
 }
 
 void clientHandler::handleClients(){
-  //i tried making a pointer list to hold all clients
-  //this would have worked on a normal OS, however the boards
-  //seem to be too obselete to handle more than one client at a time
-  //there also should not be more than one client at a given time
-  //therefore this should not be a problem
+  	//i tried making a pointer list to hold all clients
+  	//this would have worked on a normal OS, however the boards
+  	//seem to be too obselete to handle more than one client at a time
+  	//there also should not be more than one client at a given time
+  	//therefore this should not be a problem
 	WiFiClient client = server->available();
 	if(client){
-    Serial.println("got client");
-    handleClient(client);
+    		Serial.println("got client");
+    		handleClient(client);
 	}
 }
 
 void clientHandler::handleClient(WiFiClient client){
 	while(client.connected()){
-    if(client.available()){
-      char c = client.read();
-      Serial.print("got command ");
-      Serial.print(c);
-      Serial.println(" from client");
-      handleCommand(c, client);
-    }
+    			if(client.available()){
+      			char c = client.read();
+      			Serial.print("got command ");
+      			Serial.print(c);
+      			Serial.println(" from client");
+      			handleCommand(c, client);
+    		}
 	}
 	
 }
@@ -66,8 +69,8 @@ void clientHandler::handleCommand(char c, WiFiClient client){
 }
 
 void clientHandler::open(){
-	stepper1->setMaxSpeed(400);
-	stepper1->moveTo(-2048);
+	stepper1->setMaxSpeed(maxSpeed);
+	stepper1->moveTo(openPosition);
 	while (stepper1->distanceToGo() != 0) {
 		//Serial.println("E1");
 		stepper1->run();
@@ -76,19 +79,19 @@ void clientHandler::open(){
 }
 
 void clientHandler::close(){
-  stepper1->setMaxSpeed(400);
-  stepper1->moveTo(-4096);
-  while (stepper1->distanceToGo() != 0) {
-    //Serial.println("E1");
-    stepper1->run();
-    yield();
-  }
+  	stepper1->setMaxSpeed(maxSpeed);
+  	stepper1->moveTo(closedPosition);
+  	while (stepper1->distanceToGo() != 0) {
+    		//Serial.println("E1");
+    		stepper1->run();
+    		yield();
+  	}
 }
 
 void clientHandler::opposite(){
-	stepper1->setMaxSpeed(400);
-	if(stepper1->currentPosition() == -2048){stepper1->moveTo(0);}
-	else if(stepper1->currentPosition() == -4096){stepper1->moveTo(-2048);}
+	stepper1->setMaxSpeed(maxSpeed);
+	if(stepper1->currentPosition() == openPosition){stepper1->moveTo(closedPosition);}
+	else if(stepper1->currentPosition() == closedPosition){stepper1->moveTo(openPosition);}
 	else{stepper1->moveTo(stepper1->currentPosition()-alarmMotorDistance);}
 	while (stepper1->distanceToGo() != 0) {
 		//Serial.println("E1");
