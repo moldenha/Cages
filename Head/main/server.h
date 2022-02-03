@@ -11,34 +11,48 @@ class serverHandle{
 		//this is being designed so that the cages can be opened and closed x number of times a day
 		char functions[3][10] = {"close", "open","opposite"};
 		//char *myIp;
+		//this holds the IP addresses of each of the cages
 		char **servos;
+		//this is the amount of cages
 		int servos_total = 0;
+		//the default port on the cages servers
 		int servo_port = 90;
+		//this is a list of all the alarms
 		time_handler::t_object *changes;
+		//this is the amount of alarms
 		int change_amt;
+		//creates a string for the index of the alarm
 		void timeBufferString(int index, char *buffer);
+		//returns a string for the index of the alarm
 		char* timeBufferString(int index);
+		//creates a string for the current time
 		void timeBufferString(char *buffer);
+		//returns a current HTML string for the current time
 		char* timeBufferString();
+		//adds a new ip address for each of the cages
 		void addServo(const char *ip);
+		//frees the cage memory
 		void clearServos(){
 			for(int i = 0; i < servos_total; i++){free(servos[i]);}
 			if(servos_total > 0){free(servos);}
 			servos_total= 0;
 		}
+		//make the list smaller if there are no cage IP addrresses
 		void reallocServos(){
 			for(int i = 0; i < servos_total; i++){free(servos[i]);}
 			if(servos_total > 0){servos = (char**)realloc(servos, 1);}
 			servos_total= 0;
 		}
-
+		//this is a variable pointing to the time of the last interaction with the cages
 		time_handler::t_object *last = NULL;
 	public:
 		//add time variable the time added to the current got time by the program
 		//and then added so the correct time is displayed
     		time_handler::t_object add_time;
+		//makes the HTML page
     		String makePage();
     		//void addMyIp(const char *ip){strcpy(myIp, ip);}
+		//handles all the different servers checking the alarm
 		serverHandle();
 		void addTime(int hour, int minute, int second, int open);
 		void addTime(time_handler::t_object ob);
@@ -176,13 +190,14 @@ void serverHandle::correctTime(int hour, int minute, int second){
 }
 
 void serverHandle::removeTime(int index){
-  if(index >= change_amt){return;}
-  time_handler::t_object holder[change_amt];
-  for(int i = 0; i < change_amt; i++){holder[i] = changes[i];}
-  change_amt--;
-  changes = (time_handler::t_object*)realloc(changes, sizeof(time_handler::t_object)*change_amt);
-  int counter = 0;
-  for(int i = 0; i <= change_amt; i++){ if(i != index){changes[counter] = holder[i];counter++;}}
+  	if(index >= change_amt){return;}
+  	time_handler::t_object holder[change_amt];
+  	for(int i = 0; i < change_amt; i++){holder[i] = changes[i];}
+	change_amt--;
+  	if(change_amt != 0){changes = (time_handler::t_object*)realloc(changes, sizeof(time_handler::t_object)*change_amt);}
+	else{changes = (time_handler::t_object*)realloc(changes, sizeof(time_handler::t_object));}
+  	int counter = 0;
+  	for(int i = 0; i <= change_amt; i++){ if(i != index){changes[counter] = holder[i];counter++;}}
 }
 
 void serverHandle::addServo(const char *ip){
