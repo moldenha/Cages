@@ -55,9 +55,9 @@ clientHandler::clientHandler(AccelStepper *_stepper1, WiFiServer *_server)
 	add_time.hour = 0;
 	add_time.second = 0;
 	add_time.minute = 0;
-  last_delay.second = 0;
-  last_delay.minute = 0;
-  last_delay.hour = 0;
+  	last_delay.second = 0;
+  	last_delay.minute = 0;
+  	last_delay.hour = 0;
 }
 
 void clientHandler::handleClients(){
@@ -68,8 +68,8 @@ void clientHandler::handleClients(){
   //therefore this should not be a problem
 	WiFiClient client = server->available();
 	if(client){
-    Serial.println("got client");
-    handleClient(client);
+    		Serial.println("got client");
+    		handleClient(client);
 	}
 }
 
@@ -252,13 +252,13 @@ void clientHandler::open(){
 }
 
 void clientHandler::close(){
-  stepper1->setMaxSpeed(400);
-  stepper1->moveTo(-4096);
-  while (stepper1->distanceToGo() != 0) {
-    //Serial.println("E1");
-    stepper1->run();
-    yield();
-  }
+  	stepper1->setMaxSpeed(400);
+  	stepper1->moveTo(-4096);
+  	while (stepper1->distanceToGo() != 0) {
+    		//Serial.println("E1");
+    		stepper1->run();
+    		yield();
+  	}
 }
 
 void clientHandler::opposite(){
@@ -274,14 +274,14 @@ void clientHandler::opposite(){
 }
 
 bool clientHandler::do_delay(){
-  int last_seconds = last_delay.seconds();
-  time_handler::t_object n = currentTime();
-  int now_seconds = n.seconds();
-  int dif = now_seconds - last_seconds;
-  if(abs(dif/60) < time_between_delays){
-    return false;
-  }
-  return true;
+  	int last_seconds = last_delay.seconds();
+  	time_handler::t_object n = currentTime();
+  	int now_seconds = n.seconds();
+  	int dif = now_seconds - last_seconds;
+  	if(abs(dif/60) < time_between_delays){
+    		return false;
+  	}
+  	return true;
 }
 
 #endif
