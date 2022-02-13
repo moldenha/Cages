@@ -5,7 +5,7 @@
 #include <curl/curl.h>
 #include <ctime>
 //clang++ setup.cpp -o setup -lcurl -std=c++11
-//i686-w64-mingw32-g++ setup.cpp -o setup.exe -L/Users/sammoldenhauer/Downloads/Cage_Server.v5.1_Server2-CH_edit-TM/curl/curl/lib/curl-7.81.0-win32-mingw/lib/ -I/Users/sammoldenhauer/Downloads/Cage_Server.v5.1_Server2-CH_edit-TM/curl/curl/lib/curl-7.81.0-win32-mingw/include -lcurl
+//i686-w64-mingw32-g++ setup.cpp -o setup.exe -L/Downloads/Cage_Server.v5.1_Server2-CH_edit-TM/curl/curl/lib/curl-7.81.0-win32-mingw/lib/ -I/Downloads/Cage_Server.v5.1_Server2-CH_edit-TM/curl/curl/lib/curl-7.81.0-win32-mingw/include -lcurl
 
 
 size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp){
@@ -51,15 +51,16 @@ string find(int lower, int upper){
 
 
 int main(){
-	string url = find(100, 170);
+	string url = find(100, 170).c_str();
 	url += "/";
 	cout<<"found url: "<<url<<endl;
+	const char* url_copy = url.c_str();
 	time_t ttime = time(0);
 	tm *local_time = localtime(&ttime);
 	string endpoint = "correctTime?correctionh="+to_string(local_time->tm_hour)+"&correctionm="+to_string(local_time->tm_min)+"&corrections="+to_string(local_time->tm_sec);
-	bool result = test(url, endpoint, 2);
+	bool result = test(string(url_copy), endpoint, 2);
 	cout<<"corrected time "<<endl;
-	result = test(url, "findServos", 0);
+	result = test(string(url_copy), "findServos", 0);
 	cout<<"servos found"<<endl;
 	return 0;
 }
