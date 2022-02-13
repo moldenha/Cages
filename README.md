@@ -8,9 +8,9 @@ The newly added code goes over the power saving mode. This is a description of h
 
 1. There are two seperate "pauses" in delays between the delays that are used to conserve power
  - The first one is how much time before the cages are supposed to go off that the delays stop working
- - This is currently set to 10 minutes, this variable can be changed in the clienthandler.h file under the variable stop_delay_before_cages
+ - This is currently set to 10 minutes, this variable can be changed in the `clienthandler.h` file under the variable `stop_delay_before_cages`
  - The second delay is in between each delay. Currently it is set to 5 minutes. Basically in between each massive delay, there is a small delay of 5 minutes. This is there so in case the main Head needs to connect and give it new alarms or other commands.
- - This variable is currently by default set to 5 minutes, in the clienthandler.h file under the variable time_between_delays
+ - This variable is currently by default set to 5 minutes, in the `clienthandler.h` file under the variable `time_between_delays`
 
 
  2. There is a different setup to the webpage
