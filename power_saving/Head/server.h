@@ -228,6 +228,7 @@ void serverHandle::oppositeAll(){
 }
 
 void serverHandle::sendAlarmsAll(){
+	sendCorrectTimeAll();
 	curr_command = "remake_alarms";
 	for(int i = 0; i < changes->Size(); i++){
 		n_string space(" ");

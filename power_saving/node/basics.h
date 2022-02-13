@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
+#include <typeinfo>
 
 
 //arduino by default enables c++11, therefore constexpr and other types allocated in c++11 are allowed to be used for this project

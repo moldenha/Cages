@@ -101,6 +101,7 @@ void handle_findServos(){
   Serial.println("finding servos");
   handler.findServos(100, 170);
   server.send(200, "text/html", message);
+  handler.sendCorrectTimeAll();
 }
 void handle_openAll(){
   String message = " <meta http-equiv='refresh' content='1; URL=/' />";

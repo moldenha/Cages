@@ -20,9 +20,13 @@ class clientHandler{
 	private:
 		AccelStepper *stepper1;
 		WiFiServer *server;
-	  const int alarmMotorDistance = 2048;
+	  	const int alarmMotorDistance = 2048;
 		time_handler::t_object add_time;
 		my_vector<time_handler::t_object> alarms;
+		//10 minutes
+		const int stop_delay_before_cages = 10;
+		//5 minutes
+		const int time_between_delays = 5;
 	public:
 		clientHandler(AccelStepper *_stepper1, WiFiServer *_server);
 		//this variable is important because in between each delay it will be open to commands for 5 minutes
@@ -147,7 +151,7 @@ int clientHandler::getDelay(){
 	//now it checks if it is in the next 10 minutes (or last 10 minutes)
 	//if so, there is no delay
 	diff = abs(diff);
-	if((diff/60) <= 10)
+	if((diff/60) <= stop_delay_before_cages)
 		return 0;
 	//otherwise, return half the time between now and then and that's how long the delay will be for
 	last_delay = currentTime();
@@ -180,6 +184,7 @@ void clientHandler::correct_time(n_string c){
 	//put into the add_time variable
 	time_handler::t_object t = time_handler::getNow();
 	add_time = (corrected - t);
+	free_my_vector_str(split_arr);
 }
 
 //gets the current time
@@ -205,6 +210,7 @@ void clientHandler::add_alarm(n_string c){
 		new_alarm.open = mode;
 		alarms.push_back(new_alarm);	
 	}
+	free_my_vector_str(split);
 }
 
 //this is when new alarms need to be given to the cage
@@ -274,7 +280,7 @@ bool clientHandler::do_delay(){
   time_handler::t_object n = currentTime();
   int now_seconds = n.seconds();
   int dif = now_seconds - last_seconds;
-  if(abs(dif/60) < 5){
+  if(abs(dif/60) < time_between_delays){
     return false;
   }
   return true;
