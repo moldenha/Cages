@@ -162,7 +162,13 @@ struct my_vector{
 	T &operator[](size_t index){return at(index);}
 	void clear(){
 		size = 0;
-		arr = (T*)malloc(sizeof(T));
+		if(!freeable){
+			arr = (T*)malloc(sizeof(T));
+			freeable = true;
+		}
+		else{
+			arr = (T*)realloc(arr, sizeof(T));
+		}
 	}
 };
 
