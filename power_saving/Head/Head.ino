@@ -31,6 +31,7 @@ void setup() {
   server.on("/closeAll", handle_closeAll);
   server.on("/oppositeAll", handle_oppositeAll);
   server.on("/addServo", handle_addServo);
+  server.on("/sendAlarms", handle_sendAlarms);
   
   server.begin(); //Start the server
   Serial.println("Server listening");
@@ -107,6 +108,11 @@ void handle_openAll(){
   server.send(200, "text/html", message);
 }
 
+void handle_sendAlarms(){
+  String message = " <meta http-equiv='refresh' content='1; URL=/' />";
+  handler.sendAlarmsAll();
+  server.send(200, "text/html", message);
+}
 void handle_closeAll(){
   String message = " <meta http-equiv='refresh' content='1; URL=/' />";
   handler.closeAll();

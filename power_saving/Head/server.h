@@ -135,6 +135,7 @@ String serverHandle::makePage(){
   }
   page += "</select></p><br><input type='submit' value='Remove Alarm'></form>";
   page += "</p><p><br><form action='findServos'><input type='submit' value='Find Nodes'></form><br><br><form action='openAll'><input type='submit' value='Open All'></form><br><br><form action='closeAll'><input type='submit' value='Close All'></form><br><br><form action='oppositeAll'><input type='submit' value='Opposite All'></form></p>";
+  page += "<p><br><form action='sendAlarms'><input type='submit' value='Send Alarms'></forms></p>";
   page += "<p><br><form action='addServo'><h3> Add Known Cage IP: </h3><p><input type='text' name='servAdd' size=13>   <input type='submit' value='Add Cage'></form></p>";
   page += "<p><br><h2> Cage Numbers and their IP adddresses: </h2>";
   for(int i = 0; i < servos.Size(); i++){
@@ -338,7 +339,7 @@ void serverHandle::findServos(int lower, int upper){
 		String addr = "192.168.1."+String(i);
 		Serial.print("trying ");
 		Serial.println(addr);
-		if(checkConnection(addr.c_str())){
+		if(checkConnection(addr.c_str()) && inServos(addr.c_str()) == false){
 			Serial.print("found: ");
 			Serial.println(addr);
 			servos.push_back(n_string(addr.c_str()));

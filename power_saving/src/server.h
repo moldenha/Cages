@@ -338,7 +338,7 @@ void serverHandle::findServos(int lower, int upper){
 		String addr = "192.168.1."+String(i);
 		Serial.print("trying ");
 		Serial.println(addr);
-		if(checkConnection(addr.c_str())){
+		if(checkConnection(addr.c_str()) && inServos(addr.c_str()) == false){
 			Serial.print("found: ");
 			Serial.println(addr);
 			servos.push_back(n_string(addr.c_str()));
