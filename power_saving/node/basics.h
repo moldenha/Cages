@@ -1,10 +1,9 @@
-#ifndef VECTOR_H
-#define VECTOR_H
+#ifndef BASICS_H
+#define BASICS_H
 //#include "n_string.h"
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
-#include <typeinfo>
 
 
 //arduino by default enables c++11, therefore constexpr and other types allocated in c++11 are allowed to be used for this project
