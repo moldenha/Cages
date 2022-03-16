@@ -67,7 +67,7 @@ struct my_vector{
 		size = 0;
 		//std::cout<<"allocated"<<std::endl;
 	}
-	~my_vector(){size = 0; freeable=false;}
+	~my_vector(){free_self();freeable=false;size=0;}
 	my_vector():size(0),freeable(false){}
 	size_t Size(){return size;}
 	void push_back(T input)
@@ -177,7 +177,7 @@ struct n_string{
 		my_vector<char> line;
 	public:
 		static const size_t npos = -1;
-		~n_string(){line.size=0;clear();}
+		~n_string(){free_self();}
 		n_string(){line.size=0;clear();}
 		n_string(n_string &obj){
 			clear();
