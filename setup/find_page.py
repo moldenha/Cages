@@ -1,10 +1,13 @@
 import requests
 
 def exists(url):
-    response = requests.get(url)
-    if response.status_code == 200:
-        return True
-    return False
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            return True
+        return False
+    except:
+        return False
 
 def check(base, start, end):
     for i in range(start, (end+1)):
