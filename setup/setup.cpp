@@ -1,7 +1,7 @@
 #include <string.h>
 #include <iostream>
 #include <ctime>
-//#define CURL_STATICLIB
+#define CURL_STATICLIB
 #include <curl/curl.h>
 #include <ctime>
 //clang++ setup.cpp -o setup -lcurl -std=c++11
