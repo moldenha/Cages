@@ -41,7 +41,7 @@ class clientHandler{
 		time_handler::t_object currentTime();
 		void add_alarm(n_string c);
 		int getDelay();
-    bool do_delay();
+		bool do_delay();
 		time_handler::t_object *nextAlarm();
 		bool pastAllAlarms();
 		void remake_alarms(n_string c);
@@ -68,8 +68,8 @@ void clientHandler::handleClients(){
   //therefore this should not be a problem
 	WiFiClient client = server->available();
 	if(client){
-    Serial.println("got client");
-    handleClient(client);
+		Serial.println("got client");
+		handleClient(client);
 	}
 }
 
@@ -78,12 +78,12 @@ void clientHandler::handleClients(){
 //important for finding the next alarm
 bool clientHandler::pastAllAlarms(){
 	//returns false if there are no scheduled alarms
-	if(alarms.Size() == 0){	return false; }
+	if(alarms.size() == 0){	return false; }
 	//gets current time
 	time_handler::t_object now = currentTime();
 	//gets the seconds
 	int now_seconds = now.seconds();
-	for(int i = 0; i < alarms.Size(); i++){
+	for(int i = 0; i < alarms.size(); i++){
 		int alarm_seconds = alarms.at(i).seconds();
 		//if there is one that the next time is later than right now, return false
 		if((alarm_seconds - now_seconds) > 0)
@@ -95,7 +95,7 @@ bool clientHandler::pastAllAlarms(){
 
 time_handler::t_object *clientHandler::nextAlarm(){
 	//returns the NULL pointer if there are no scheduled alarms
-	if(alarms.Size() == 0){return NULL;}
+	if(alarms.size() == 0){return NULL;}
 	//gets the current time
 	time_handler::t_object now = currentTime();
 	//gets the current time in the amount of seconds since the start of the day
@@ -103,7 +103,7 @@ time_handler::t_object *clientHandler::nextAlarm(){
 	//sets the default next alarm to the first alarm in the list
 	//then it checks if there is an earlier one
 	time_handler::t_object *current = &alarms.at(0);
-	for(int i = 0; i < alarms.Size(); i++){
+	for(int i = 0; i < alarms.size(); i++){
 		//gets the amount of seconds since the start of the day till the next alarm
 		int alarm_seconds = alarms.at(i).seconds();
 		//if all the alarms for the day have already been done
@@ -137,7 +137,7 @@ time_handler::t_object *clientHandler::nextAlarm(){
 int clientHandler::getDelay(){
 	//if there are no alarms set yet, then there will be no delay
 	//it will be waiting for an alarm before there is a delay
-	if(alarms.Size() == 0){return 0;}
+	if(alarms.size() == 0){return 0;}
 	//gets the next alarm
 	time_handler::t_object *next = nextAlarm();
 	//re-itterates if there are no alarms no delay
@@ -169,7 +169,6 @@ void clientHandler::handleClient(WiFiClient client){
 			//handle the string command
       			handleCommand(c.c_str(), client);
 			//free the allocated space to store the command
-			c.free_self();
     		}
 	}
 }
@@ -184,7 +183,6 @@ void clientHandler::correct_time(n_string c){
 	//put into the add_time variable
 	time_handler::t_object t = time_handler::getNow();
 	add_time = (corrected - t);
-	free_my_vector_str(split_arr);
 }
 
 //gets the current time
@@ -202,7 +200,7 @@ time_handler::t_object clientHandler::currentTime(){
 //then the function (open : 1), (close : 0), (opposite : 2)
 void clientHandler::add_alarm(n_string c){
 	my_vector<n_string> split = c.split(' ');
-	for(int i = 1; i < split.Size(); i++){
+	for(int i = 1; i < split.size(); i++){
 		int seconds = atoi(split.at(i).c_str());
 		i++;
 		int mode = atoi(split.at(i).c_str());
@@ -210,7 +208,6 @@ void clientHandler::add_alarm(n_string c){
 		new_alarm.open = mode;
 		alarms.push_back(new_alarm);	
 	}
-	free_my_vector_str(split);
 }
 
 //this is when new alarms need to be given to the cage
