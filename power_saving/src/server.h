@@ -16,11 +16,9 @@ class serverHandle{
 		n_string curr_command;
 		my_vector<n_string> servos;
 		int servo_port = 90;
-		my_vector<time_handler::t_object> *changes;
-		void timeBufferString(int index, char *buffer);
-		char* timeBufferString(int index);
-		void timeBufferString(char *buffer);
-		char* timeBufferString();
+		my_vector<time_handler::t_object> changes;
+		n_string timeBufferString(int index);
+		n_string timeBufferString();
 		void clearPassed(){passed.clear();}
 	public:
     		time_handler::t_object add_time;
@@ -30,7 +28,7 @@ class serverHandle{
 		void addTime(int hour, int minute, int second, int open);
 		void editTime(int index, int hour, int minute, int second);
     		void removeTime(int index);
-    		int get_changeamt(){return changes->size();}
+    		int get_changeamt(){return changes.size();}
     		void correctTime(int hour, int minute, int second);
 		void openAll();
 		bool open(const char *ip);
@@ -53,62 +51,60 @@ class serverHandle{
 
 serverHandle::serverHandle()
 {
+  Serial.println("new server handle called");
   add_time.hour = 0;
   add_time.second = 0;
   add_time.minute = 0;
-  }
+  add_time.open = 0;
+}
 
 void serverHandle::addTime(int hour, int minute, int second, int open){
+	Serial.println("getting object");
 	time_handler::t_object toAdd = time_handler::getTime(hour, minute, second, open);
-	changes->push_back(toAdd);
+	Serial.println("pushing back");
+	changes.push_back(toAdd);
+  Serial.println("sending alarms");
 	sendAlarmsAll();
+  Serial.println("sent alarms");
 }
 
 bool serverHandle::all_passed(){
 	for(int i = 0; i < passed.size(); i++){
-		if(*passed.at(i).second == false)
+		if(passed.at(i).second == false)
 			return false;
 	}
 	return true;
 }
 
-void serverHandle::timeBufferString(int index, char *buffer){
-	time_handler::t_object t = changes->at(index);
-	sprintf(buffer, "Currently set to: %02d:%02d:%02d function: ", t.hour, t.minute, t.second, functions[t.open]);
-}
-
-char* serverHandle::timeBufferString(int index){
-	time_handler::t_object t = changes->at(index);
+n_string serverHandle::timeBufferString(int index){
+	time_handler::t_object t = changes.at(index);
 	char *buffer = (char*)malloc(50);
 	int n = sprintf(buffer, "Currently set to: %02d:%02d:%02d function: %s", t.hour, t.minute, t.second, functions[t.open]);
 	buffer[n] = '\0';
-	return buffer;
+	n_string returning(buffer);
+	free(buffer);
+	return returning;
 }
 
-void serverHandle::timeBufferString(char* buffer){
-	time_handler::t_object t = time_handler::getNow() + add_time;
-	sprintf(buffer, "Current time: %02d:%02d:%02d", t.hour, t.minute, t.second);
-}
-
-char* serverHandle::timeBufferString(){
+n_string serverHandle::timeBufferString(){
 	time_handler::t_object t = time_handler::getNow() + add_time;
 	char *buffer = (char*)malloc(28);
 	int n = sprintf(buffer, "Current time: %02d:%02d:%02d", t.hour, t.minute, t.second);
 	buffer[n] = '\0';
-	return buffer;
+	n_string returning(buffer);
+	free(buffer);
+	return returning;
 }
 
 
 String serverHandle::makePage(){
 	String page = "<meta name='viewport' content='width=device-width, initial-scale=1'><form action='setServerTimes'><h2>Time:</h2><p>";
-  char *currentTimeBuffer = timeBufferString();
-	page += currentTimeBuffer;
-	free(currentTimeBuffer);
-	for(int i = 0; i < changes->size(); i++){
+	n_string currentTimeBuffer = timeBufferString();
+	page += currentTimeBuffer.c_str();
+	for(int i = 0; i < changes.size(); i++){
 		page += "</p><h2>Alarm "+String(i+1)+":</h2><input type='text' name ='timeh"+String(i)+"' placeholder='h' size=1>:<input type='text' name ='timem"+String(i)+"' placeholder='m' size=1>:<input type='text' name ='times"+String(i)+"' placeholder='s' size=1> <p>"; //This line allows the user to input their own time for the server's time.
-		char *timBuffer = timeBufferString(i);
-		page += timBuffer;
-		free(timBuffer);
+		n_string timBuffer = timeBufferString(i);
+		page += timBuffer.c_str();
 	}
   //this is the submit line for changing the server time
 	page += "</p><br><br><input type='submit' value='Set times'></form>";
@@ -118,7 +114,7 @@ String serverHandle::makePage(){
   page += "</p><br><br><form action='addAlarm'><h2> Create Alarm: </h2><p><input type='text' name='addh' size=2>:<input type='text' name='addm' size=2>:<input type='text' name='adds' size=2>     Function: <select name='subject' id='subject'><option value='1' selected='selected'>Open</option><option value='0' selected='selected'> Close</option><option value='2' selected='selected'> Opposite</option></select><input type='submit' value='Create Alarm'></form>";
   //this is adding the remove alarm
   page += "</p><br><br><form action='removeAlarm'><h3> Remove alarm Alarm: </h3> <select name='removeSubject' id='removeSubject'>";
-  for(int i = 0; i < changes->size(); i++){
+  for(int i = 0; i < changes.size(); i++){
     page += "<option value='"+String(i)+"' selected='selected'>Alarm "+String(i+1)+"</option>";
   }
   page += "</select></p><br><input type='submit' value='Remove Alarm'></form>";
@@ -143,9 +139,9 @@ void serverHandle::editTime(int index, int hour, int minute, int second){
 	}
 	while(hour >= 24)
 		hour -= 24;
-	changes->at(index).hour = hour;
-	changes->at(index).minute = minute;
-	changes->at(index).second = second;
+	changes.at(index).hour = hour;
+	changes.at(index).minute = minute;
+	changes.at(index).second = second;
 	sendAlarmsAll();
 }
 
@@ -158,7 +154,7 @@ void serverHandle::correctTime(int hour, int minute, int second){
 }
 
 void serverHandle::removeTime(int index){
-	changes->erase((size_t)index);
+	changes.erase((size_t)index);
 	sendAlarmsAll();       
 }
 
@@ -167,8 +163,7 @@ void serverHandle::openAll(){
 	curr_command = "open";
 	clearPassed();
 	for(int i = 0; i <servos.size(); i++){
-		bool p = open(servos.at(i).c_str());
-		passed.push_back({servos.at(i), p});
+		passed.push_back({servos.at(i), open(servos.at(i).c_str())});
 	}
 }
 
@@ -189,8 +184,7 @@ void serverHandle::closeAll(){
 	curr_command = "close";
 	clearPassed();
 	for(int i = 0; i <servos.size(); i++){
-		bool c = close(servos.at(i).c_str());
-		passed.push_back({servos.at(i), c});
+		passed.push_back({servos.at(i), close(servos.at(i).c_str())});
 	}
 
 }
@@ -212,27 +206,40 @@ void serverHandle::oppositeAll(){
 	curr_command = "opposite";
 	clearPassed();
 	for(int i = 0; i <servos.size(); i++){
-		bool o = opposite(servos.at(i).c_str());
-		passed.push_back({servos.at(i), o});
+		passed.push_back({servos.at(i), opposite(servos.at(i).c_str())});
 	}
 }
 
 void serverHandle::sendAlarmsAll(){
+	Serial.println("send all alarms called");
 	curr_command = "remake_alarms";
-	for(int i = 0; i < changes->size(); i++){
-		n_string space(" ");
-		n_string a = standard_string::to_n_string(changes->at(i).seconds());
-		n_string b = standard_string::to_n_string(changes->at(i).open);
-		curr_command += space.c_str();
-		curr_command += a.c_str();
-		curr_command	+= space.c_str();
-		curr_command += b.c_str();
+  Serial.println("set cur command");
+	for(int i = 0; i < changes.size(); i++){
+    Serial.println("first add");
+		curr_command += " ";
+    Serial.println("second add");
+		curr_command += standard_string::to_n_string(changes.at(i).seconds());
+		Serial.println("third add");
+		curr_command += " ";
+		Serial.println("fourth add");
+    Serial.println(changes.at(i).open);
+    Serial.println("putting into n_string");
+    n_string open_string = standard_string::to_n_string(changes.at(i).open);
+    Serial.println("made into n_stirng");
+    Serial.println(open_string.c_str());
+		curr_command += standard_string::to_n_string(changes.at(i).open);
+	  Serial.println("fifth add");
 	}
+	Serial.println("finished first for loop");
 	clearPassed();
+	Serial.println("cleared");
+	n_string s =  standard_string::to_n_string(servos.size());
+	Serial.print("Size: ");
+	Serial.println(s.c_str());
 	for(int i = 0; i < servos.size(); i++){
-		bool s=  sendAlarms(servos.at(i).c_str());
-		passed.push_back({servos.at(i), s});
+		passed.push_back({servos.at(i), sendAlarms(servos.at(i).c_str())});
 	}
+	Serial.println("finished second for loop");
 }
 
 bool serverHandle::sendAlarms(const char *ip){
@@ -241,10 +248,10 @@ bool serverHandle::sendAlarms(const char *ip){
 		Serial.print("connected to ");
 		Serial.println(ip);
 		n_string command = "remake_alarms";
-		for(int i = 0; i < changes->size(); i++){
+		for(int i = 0; i < changes.size(); i++){
 			n_string space(" ");
-			n_string a = standard_string::to_n_string(changes->at(i).seconds());
-			n_string b = standard_string::to_n_string(changes->at(i).open);
+			n_string a = standard_string::to_n_string(changes.at(i).seconds());
+			n_string b = standard_string::to_n_string(changes.at(i).open);
 			command += space.c_str();
 			command += a.c_str();
 			command	+= space.c_str();
@@ -275,8 +282,7 @@ void serverHandle::sendCorrectTimeAll(){
 	curr_command = "correct_time ";
 	clearPassed();
 	for(int i = 0; i < servos.size(); i++){
-    		bool c = sendCorrectTime(servos.at(i).c_str());
-		passed.push_back({servos.at(i), c});
+		passed.push_back({servos.at(i), sendCorrectTime(servos.at(i).c_str())});
 	}
 }
 
@@ -345,12 +351,12 @@ void serverHandle::check(){
 		time_handler::t_object t = time_handler::getNow() + add_time;
 		copy += standard_string::to_n_string(t.seconds());
 		for(int i = 0; i < passed.size(); i++){
-			if(!*passed.at(i).second){sendCommand(passed.at(i).first->c_str(), copy);}
+			if(!passed.at(i).second){sendCommand(passed.at(i).first.c_str(), copy);}
 		}
 		return;
 	}
 	for(int i = 0; i < passed.size(); i++){
-		if(!*passed.at(i).second){sendCommand(passed.at(i).first->c_str(), curr_command);}
+		if(!passed.at(i).second){sendCommand(passed.at(i).first.c_str(), curr_command);}
 	}
 }
 #endif

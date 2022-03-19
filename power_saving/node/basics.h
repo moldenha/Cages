@@ -274,31 +274,19 @@ struct n_string{
 
 template<typename T1, typename T2>
 struct pairs{
-	T1* first;
-	T2* second;
-	pairs(T1* _first, T2* _second)
-		:first(_first),
-		second(_second){}
-	pairs(T1& _first, T2& _second)
-		:first(&_first),
-		second(&_second){}
-	pairs()
-	:first(NULL),second(NULL){}
-	~pairs(){}
-	pairs<T1, T2> &operator=(const pairs<T1, T2> &obj){first = obj.first; second = obj.second;}
+	T1 first;
+	T2 second;	
 };
-
-std::ostream& operator<< (std::ostream& outs, n_string* obj){
-	//std::cout<<"pointer cout called"<<std::endl;
-	return outs<<obj->c_str();
-}
-std::ostream& operator<< (std::ostream& outs, n_string& obj){
-	//std::cout<<"reference cout called"<<std::endl;
-	return outs<<obj.c_str();	
-}
 
 namespace standard_string{
 	n_string to_n_string(int number){
+		bool abs = false;
+		if(number == 0)
+			return n_string("0");
+		if(number < 0){
+			abs = true;
+			number *= -1;
+		}
 		int n = log10(number) + 1;
 		int i;
 		char *numberArray = (char*)calloc(n, sizeof(char));
@@ -308,6 +296,11 @@ namespace standard_string{
 		}
 		n_string num(numberArray);	
 		free(numberArray);
+		if(abs == true){
+			n_string abs_num("-");
+			abs_num += num;
+			return abs_num;
+		}
 		return num;
 	}
 }
