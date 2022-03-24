@@ -38,12 +38,16 @@ class serverHandle{
 		bool opposite(const char *ip);
 		void findServos(int lower = 100, int upper = 179);
 		bool inServos(const char *ip);
-		void addServo(const char *ip){servos.push_back(n_string(ip));}
 		bool checkConnection(const char *ip);
 		void sendAlarmsAll();
 		bool sendAlarms(const char *ip);
 		void sendCorrectTimeAll();
 		bool sendCorrectTime(const char *ip);
+		void addServo(const char *ip){
+			servos.push_back(n_string(ip));
+			sendCorrectTime(ip);
+			sendAlarms(ip);
+		}
 		bool all_passed();
 		bool sendCommand(const char* ip, n_string command);
 		void check();
@@ -63,9 +67,9 @@ void serverHandle::addTime(int hour, int minute, int second, int open){
 	time_handler::t_object toAdd = time_handler::getTime(hour, minute, second, open);
 	Serial.println("pushing back");
 	changes.push_back(toAdd);
-  Serial.println("sending alarms");
+  	Serial.println("sending alarms");
 	sendAlarmsAll();
-  Serial.println("sent alarms");
+  	Serial.println("sent alarms");
 }
 
 bool serverHandle::all_passed(){
@@ -109,7 +113,7 @@ String serverHandle::makePage(){
   //this is the submit line for changing the server time
 	page += "</p><br><br><input type='submit' value='Set times'></form>";
   //this is the line for correcting the server time
-  //page += "<form action='correctTime'><h2>Correct Server Time:</h2><p><input type='text' name='correctionh' size=1>:<input type='text' name='correctionm' size=1>:<input type='text' name='corrections' size=1></p><br><br><input type='submit' value='Submit time'></form>";
+  page += "<form action='correctTime'><h2>Correct Server Time:</h2><p><input type='text' name='correctionh' size=1>:<input type='text' name='correctionm' size=1>:<input type='text' name='corrections' size=1></p><br><br><input type='submit' value='Submit time'></form>";
   //this is the line for adding an alarm
   page += "</p><br><br><form action='addAlarm'><h2> Create Alarm: </h2><p><input type='text' name='addh' size=2>:<input type='text' name='addm' size=2>:<input type='text' name='adds' size=2>     Function: <select name='subject' id='subject'><option value='1' selected='selected'>Open</option><option value='0' selected='selected'> Close</option><option value='2' selected='selected'> Opposite</option></select><input type='submit' value='Create Alarm'></form>";
   //this is adding the remove alarm
@@ -117,9 +121,13 @@ String serverHandle::makePage(){
   for(int i = 0; i < changes.size(); i++){
     page += "<option value='"+String(i)+"' selected='selected'>Alarm "+String(i+1)+"</option>";
   }
+  //this is the remove alarm section
   page += "</select></p><br><input type='submit' value='Remove Alarm'></form>";
+  //this button finds the servos
   page += "</p><p><br><form action='findServos'><input type='submit' value='Find Nodes'></form><br><br><form action='openAll'><input type='submit' value='Open All'></form><br><br><form action='closeAll'><input type='submit' value='Close All'></form><br><br><form action='oppositeAll'><input type='submit' value='Opposite All'></form></p>";
+  //this adds a servo
   page += "<p><br><form action='addServo'><h3> Add Known Cage IP: </h3><p><input type='text' name='servAdd' size=13>   <input type='submit' value='Add Cage'></form></p>";
+  //prints all the cages
   page += "<p><br><h2> Cage Numbers and their IP adddresses: </h2>";
   for(int i = 0; i < servos.size(); i++){
   	page += "<br> Cage "+String(i+1)+" "+String(servos.at(i).c_str());
@@ -213,27 +221,28 @@ void serverHandle::oppositeAll(){
 void serverHandle::sendAlarmsAll(){
 	Serial.println("send all alarms called");
 	curr_command = "remake_alarms";
-  Serial.println("set cur command");
+  	Serial.println("set cur command");
 	for(int i = 0; i < changes.size(); i++){
-    Serial.println("first add");
+    		Serial.println("first add");
 		curr_command += " ";
-    Serial.println("second add");
-		curr_command += standard_string::to_n_string(changes.at(i).seconds());
+    		Serial.println("second add");
+		curr_command += changes.at(i).seconds_str();
 		Serial.println("third add");
 		curr_command += " ";
 		Serial.println("fourth add");
-    Serial.println(changes.at(i).open);
-    Serial.println("putting into n_string");
-    n_string open_string = standard_string::to_n_string(changes.at(i).open);
-    Serial.println("made into n_stirng");
-    Serial.println(open_string.c_str());
+		Serial.println(changes.at(i).open);
+	        Serial.println("putting into n_string");
+	        n_string open_string = standard_string::to_n_string(changes.at(i).open);
+	        Serial.println("made into n_stirng");
+	        Serial.println(open_string.c_str());
 		curr_command += standard_string::to_n_string(changes.at(i).open);
-	  Serial.println("fifth add");
+	  	Serial.println("fifth add");
 	}
 	Serial.println("finished first for loop");
 	clearPassed();
 	Serial.println("cleared");
-	n_string s =  standard_string::to_n_string(servos.size());
+	int sSize = servos.size();
+	n_string s =  standard_string::to_n_string(sSize);
 	Serial.print("Size: ");
 	Serial.println(s.c_str());
 	for(int i = 0; i < servos.size(); i++){
@@ -250,7 +259,7 @@ bool serverHandle::sendAlarms(const char *ip){
 		n_string command = "remake_alarms";
 		for(int i = 0; i < changes.size(); i++){
 			n_string space(" ");
-			n_string a = standard_string::to_n_string(changes.at(i).seconds());
+			n_string a = changes.at(i).seconds_str(); 
 			n_string b = standard_string::to_n_string(changes.at(i).open);
 			command += space.c_str();
 			command += a.c_str();

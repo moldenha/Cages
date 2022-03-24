@@ -1,6 +1,7 @@
 #ifndef TIME_H
 #define TIME_H
 #include <TimeLib.h>
+#include "basics.h"
 
 #define OPEN 1 //function: open
 #define CLOSE 0 //function: close
@@ -46,6 +47,11 @@ namespace time_handler{
 			returning.open = open;
 		}
 		int seconds(){return (hour*60*60)+(minute*60)+second;}
+		n_string seconds_str(){
+			int total = seconds();
+			n_string secs = standard_string::to_n_string(total);
+			return secs;
+		}
     t_object operator + (t_object &ob){
       t_object returning;
       returning.hour = hour + ob.hour;

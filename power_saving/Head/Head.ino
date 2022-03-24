@@ -11,12 +11,12 @@ const char* password = "dny74smdxp";  //The password of the access point that wi
 void setup() {
   Serial.begin(115200); //Begin Serial at 115200 Baud
   Serial.println("setting up wifi");
-  WiFi.begin(ssid, password);  //Connect to the WiFi network
   Serial.println("adding times");
   handler.addTime(7, 0, 0, 0);
   Serial.println("added time 1");
   handler.addTime(19,30,0,1);
   Serial.println("added time 2");
+  WiFi.begin(ssid, password);  //Connect to the WiFi network
   while (WiFi.status() != WL_CONNECTED) {  //Wait for connection
       delay(500);
       Serial.println("Waiting to connect...");
