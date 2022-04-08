@@ -279,29 +279,49 @@ struct pairs{
 };
 
 namespace standard_string{
+	int decimal_places(float input){
+		int num_of_decimals = 0;
+		float input_copy = input;
+		while(input_copy != (int)input_copy){
+			num_of_decimals++;
+			input_copy *= 10;
+		}
+		return num_of_decimals;
+	}
+	int count_digit(float number) {
+		int num = (int)number;
+		if(num == 0)
+			return 1;
+		return int(log10(num) + 1);
+	}
+	n_string to_n_string(float number){
+		n_string num;
+		if(number == 0){
+			n_string zero("0");
+			return zero;	
+		}
+		if(number < 0){
+			num += "-";
+			number *= -1;
+		}
+		int dec_places = decimal_places(number);
+		int places = count_digit(number);
+		char buffer[dec_places+places+1];
+		int ret = snprintf(buffer, sizeof buffer, "%f", number);
+		if (ret < 0) {
+			n_string failure("FAILED");
+			return failure;	
+		}
+		num += buffer;
+		return num;	
+	}
 	n_string to_n_string(int number){
 		bool abs = false;
 		if(number == 0)
 			return n_string("0");
-		if(number < 0){
-			abs = true;
-			number *= -1;
-		}
-		int n = log10(number) + 1;
-		int i;
-		char *numberArray = (char*)calloc(n, sizeof(char));
-		for (i = n-1; i >= 0; --i, number /= 10)
-		{
-			numberArray[i] = (number % 10) + '0';
-		}
-		n_string num(numberArray);	
-		free(numberArray);
-		if(abs == true){
-			n_string abs_num("-");
-			abs_num += num;
-			return abs_num;
-		}
-		return num;
+		n_string returned = to_n_string((float)number);
+		my_vector<n_string> sp = returned.split('.');
+		return sp.at(0);
 	}
 }
 

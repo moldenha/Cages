@@ -44,7 +44,8 @@ class serverHandle{
 		void sendCorrectTimeAll();
 		bool sendCorrectTime(const char *ip);
 		void addServo(const char *ip){
-			servos.push_back(n_string(ip));
+			if(!servos.in(n_string(ip)))
+				servos.push_back(n_string(ip));
 			sendCorrectTime(ip);
 			sendAlarms(ip);
 		}
@@ -125,6 +126,7 @@ String serverHandle::makePage(){
   page += "</select></p><br><input type='submit' value='Remove Alarm'></form>";
   //this button finds the servos
   page += "</p><p><br><form action='findServos'><input type='submit' value='Find Nodes'></form><br><br><form action='openAll'><input type='submit' value='Open All'></form><br><br><form action='closeAll'><input type='submit' value='Close All'></form><br><br><form action='oppositeAll'><input type='submit' value='Opposite All'></form></p>";
+  page += "</p><p><br><form action='sendTimes'><input type='submit' value = 'Send Corrected time'></form><br><br></p><p><br><form action='sendAlarms'><input type='submit' value = 'Send Alarms'></form><br><br>";
   //this adds a servo
   page += "<p><br><form action='addServo'><h3> Add Known Cage IP: </h3><p><input type='text' name='servAdd' size=13>   <input type='submit' value='Add Cage'></form></p>";
   //prints all the cages
@@ -150,7 +152,8 @@ void serverHandle::editTime(int index, int hour, int minute, int second){
 	changes.at(index).hour = hour;
 	changes.at(index).minute = minute;
 	changes.at(index).second = second;
-	sendAlarmsAll();
+  //sendCorrectTi
+	//sendAlarmsAll();
 }
 
 void serverHandle::correctTime(int hour, int minute, int second){
@@ -180,7 +183,7 @@ bool serverHandle::open(const char *host){
 	if(client.connect(host, servo_port)){
 		Serial.print("connected to ");
 		Serial.println(host);
-		client.print("open");
+		client.print("open\n");
 		client.stop();
 		return true;
 	}
@@ -202,7 +205,7 @@ bool serverHandle::close(const char *host){
 	if(client.connect(host, servo_port)){
 		Serial.print("connected to ");
 		Serial.println(host);
-		client.print("close");
+		client.print("close\n");
 		client.stop();
 		return true;
 	}
@@ -266,6 +269,7 @@ bool serverHandle::sendAlarms(const char *ip){
 			command	+= space.c_str();
 			command += b.c_str();
 		}
+		command += '\n';
 		client.print(command.c_str());
 		client.stop();
 		return true;
@@ -279,6 +283,7 @@ bool serverHandle::sendCommand(const char *ip, n_string command){
 	if(client.connect(ip, servo_port)){
 		Serial.print("connected to ");
 		Serial.println(ip);
+		command += '\n';
 		client.print(command.c_str());
 		client.stop();
 		return true;
@@ -303,6 +308,7 @@ bool serverHandle::sendCorrectTime(const char *ip){
 		n_string command = "correct_time ";
 		time_handler::t_object t = time_handler::getNow() + add_time;
 		command += standard_string::to_n_string(t.seconds());
+		command += '\n';
 		client.print(command.c_str());
 		client.stop();
 		return true;
@@ -316,7 +322,7 @@ bool serverHandle::opposite(const char *host){
 	if(client.connect(host, servo_port)){
 		Serial.print("connected to ");
 		Serial.println(host);
-		client.print("opposite");
+		client.print("opposite\n");
 		client.stop();
 		return true;
 	}

@@ -7,9 +7,13 @@ serverHandle handler;
 
 const char* ssid = "Linksys05013"; //The SSID of the access point that will be created.
 const char* password = "dny74smdxp";  //The password of the access point that will be created.
- 
+
+// add send alarms button
+// make sure the alarms go off at the correct time
+
+
 void setup() {
-  Serial.begin(115200); //Begin Serial at 115200 Baud
+  Serial.begin(9600); //Begin Serial at 115200 Baud
   Serial.println("setting up wifi");
   Serial.println("adding times");
   handler.addTime(7, 0, 0, 0);
@@ -36,6 +40,7 @@ void setup() {
   server.on("/oppositeAll", handle_oppositeAll);
   server.on("/addServo", handle_addServo);
   server.on("/sendAlarms", handle_sendAlarms);
+  server.on("/sendTimes", handle_sendTimes);
   
   server.begin(); //Start the server
   Serial.println("Server listening");
@@ -126,5 +131,10 @@ void handle_closeAll(){
 void handle_oppositeAll(){
   String message = " <meta http-equiv='refresh' content='1; URL=/' />";
   handler.oppositeAll();
+  server.send(200, "text/html", message);
+}
+void handle_sendTimes(){
+  String message = " <meta http-equiv='refresh' content='1; URL=/' />";
+  handler.sendCorrectTimeAll();
   server.send(200, "text/html", message);
 }

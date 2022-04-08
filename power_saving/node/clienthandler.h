@@ -46,7 +46,15 @@ class clientHandler{
 		bool pastAllAlarms();
 		void remake_alarms(n_string c);
 		void handle_alarm_commands();
+    void mark_last_delay();
     n_string client_read(WiFiClient client);
+    n_string n_str(time_handler::t_object input){
+      char *buffer = (char*)malloc(15);
+      int n = sprintf(buffer, "%02d:%02d:%02d", input.hour, input.minute, input.second);
+      n_string returning(buffer);
+      free(buffer);
+      return returning;
+    }
 };
 
 clientHandler::clientHandler(AccelStepper *_stepper1, WiFiServer *_server)
@@ -69,7 +77,7 @@ void clientHandler::handleClients(){
   //therefore this should not be a problem
 	WiFiClient client = server->available();
 	if(client){
-		Serial.println("got client");
+		//Serial.println("got client");
 		handleClient(client);
 	}
 }
@@ -138,12 +146,18 @@ time_handler::t_object *clientHandler::nextAlarm(){
 int clientHandler::getDelay(){
 	//if there are no alarms set yet, then there will be no delay
 	//it will be waiting for an alarm before there is a delay
-	if(alarms.size() == 0){return 0;}
+	if(alarms.size() == 0){
+	  return 0;
+	  }
 	//gets the next alarm
 	time_handler::t_object *next = nextAlarm();
 	//re-itterates if there are no alarms no delay
-	if(next == NULL){return 0;}
+	if(next == NULL){
+    //Serial.println("was null");
+	  return 0;
+	}
 	//gets current time
+  //Serial.println("got next alarm");
 	time_handler::t_object now = currentTime();
 	int now_seconds = now.seconds();
 	int next_seconds = next->seconds();
@@ -152,11 +166,21 @@ int clientHandler::getDelay(){
 	//now it checks if it is in the next 10 minutes (or last 10 minutes)
 	//if so, there is no delay
 	diff = abs(diff);
-	if((diff/60) <= stop_delay_before_cages)
+  //Serial.print("diff is: ");
+  //Serial.println(diff);
+	if((diff/60) <= stop_delay_before_cages){
+    //Serial.print(diff/60);
+    //Serial.print(" ");
+    //Serial.print(stop_delay_before_cages);
+    //Serial.print(" ");
+    //Serial.println("returning 0");
 		return 0;
+   }
 	//otherwise, return half the time between now and then and that's how long the delay will be for
-	last_delay = currentTime();
-	return (int)diff/2;
+  int output = (int)diff/2;
+  //Serial.print("returning: ");
+  //Serial.println(output);
+	return output;
 }
 
 n_string clientHandler::client_read(WiFiClient client){
@@ -174,12 +198,26 @@ void clientHandler::handleClient(WiFiClient client){
 	while(client.connected()){
     		if(client.available() > 0){
       			//get the string command
-			      n_string c = client_read(client);
-      			Serial.print("got command ");
-      			Serial.print(c.c_str());
-      			Serial.println(" from client");
+			n_string c = client_read(client);
+      			//Serial.print("got command ");
+      			//Serial.print(c.c_str());
+      			//Serial.println(" from client");
 			//handle the string command
-      			handleCommand(c.c_str(), client);
+			my_vector<n_string> commands;
+			n_string command;
+			for(int i = 0; i < c.size(); i++){
+				if(c.at(i) == '\n'){
+					commands.push_back(command);
+					command.clear();
+				}
+				else{
+					command.push_back(c.at(i));
+				}
+			}
+			if(command.size() > 0)
+				commands.push_back(command);
+      			for(int i = 0; i < commands.size(); i++)
+				handleCommand(commands.at(i).c_str(), client);
 			//free the allocated space to store the command
     		}
 	}
@@ -189,12 +227,22 @@ void clientHandler::handleClient(WiFiClient client){
 //a "readable" version so that it can tell the time
 void clientHandler::correct_time(n_string c){
 	//the current time in seconds is seperated by a space that is before the command correct_time
-	my_vector<n_string> split_arr = c.split(' ');
-	int seconds = atoi(split_arr[1].c_str());
+  n_string num;
+  bool space = false;
+  for(int i = 0; i < c.size(); i++){
+    if(c.at(i) == ' '){
+      space = true;
+    }
+    else if(space == true){
+      num += c.at(i);
+    }
+  }
+	int seconds = atoi(num.c_str());
 	time_handler::t_object corrected = time_handler::getTime(seconds);
 	//put into the add_time variable
 	time_handler::t_object t = time_handler::getNow();
 	add_time = (corrected - t);
+  return;
 }
 
 //gets the current time
@@ -211,7 +259,12 @@ time_handler::t_object clientHandler::currentTime(){
 //then the amount of seconds in the day until an alarm
 //then the function (open : 1), (close : 0), (opposite : 2)
 void clientHandler::add_alarm(n_string c){
-	my_vector<n_string> split = c.split(' ');
+  if(c.find(" ") == n_string::npos){
+    //Serial.println("space not found");
+  }
+	my_vector<n_string> split = c.split(" ");
+  //Serial.print("amount after split: ");
+  //Serial.println(split.size());
 	for(int i = 1; i < split.size(); i++){
 		int seconds = atoi(split.at(i).c_str());
 		i++;
@@ -226,6 +279,11 @@ void clientHandler::add_alarm(n_string c){
 void clientHandler::remake_alarms(n_string c){
 	alarms.clear();
 	add_alarm(c);
+  //Serial.print("alarm size: ");
+  //Serial.println(alarms.size());
+  for(int i = 0; i < alarms.size(); i++){
+    //Serial.println(n_str(alarms.at(i)).c_str());
+  }
 }
 
 //this function is called when the delay is 0
@@ -245,7 +303,12 @@ void clientHandler::handleCommand(n_string c, WiFiClient client){
 	if(c.find("open") != n_string::npos){open();}
 	else if(c.find("close") != n_string::npos){close();}
 	else if(c.find("opposite") != n_string::npos){opposite();}
-	else if(c.find("correct_time") != n_string::npos){correct_time(c);}	
+	else if(c.find("correct_time") != n_string::npos){
+	    correct_time(c);
+      time_handler::t_object n = currentTime();
+      //Serial.print("new time: ");
+      //Serial.println(n_str(n).c_str());
+	  }	
 	else if(c.find("add_alarm") != n_string::npos){add_alarm(c);}
 	else if(c.find("remake_alarms") != n_string::npos){remake_alarms(c);}
 	else{client.print("Here");}
@@ -256,7 +319,7 @@ void clientHandler::open(){
 	stepper1->setMaxSpeed(400);
 	stepper1->moveTo(-2048);
 	while (stepper1->distanceToGo() != 0) {
-		//Serial.println("E1");
+		////Serial.println("E1");
 		stepper1->run();
 		yield();
 	}
@@ -266,7 +329,7 @@ void clientHandler::close(){
   stepper1->setMaxSpeed(400);
   stepper1->moveTo(-4096);
   while (stepper1->distanceToGo() != 0) {
-    //Serial.println("E1");
+    ////Serial.println("E1");
     stepper1->run();
     yield();
   }
@@ -278,20 +341,30 @@ void clientHandler::opposite(){
 	else if(stepper1->currentPosition() == -4096){stepper1->moveTo(-2048);}
 	else{stepper1->moveTo(stepper1->currentPosition()-alarmMotorDistance);}
 	while (stepper1->distanceToGo() != 0) {
-		//Serial.println("E1");
+		////Serial.println("E1");
 		stepper1->run();
 		yield();
 	}
 }
 
+void clientHandler::mark_last_delay(){last_delay = currentTime();}
+
 bool clientHandler::do_delay(){
   int last_seconds = last_delay.seconds();
+  //Serial.print("last delay seconds: ");
+  //Serial.println(last_seconds);
   time_handler::t_object n = currentTime();
   int now_seconds = n.seconds();
+  //Serial.print("now seconds: ");
+  //Serial.println(now_seconds);
   int dif = now_seconds - last_seconds;
+  //Serial.print("do delay dif: ");
+  //Serial.println(dif);
   if(abs(dif/60) < time_between_delays){
+    //Serial.println("returning false");
     return false;
   }
+  //Serial.println("returning true");
   return true;
 }
 

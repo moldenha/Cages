@@ -24,8 +24,8 @@ const int alarmMotorDistance = 2048;
 clientHandler handler(&stepper1, &server);
 
 void setup(){
-  Serial.begin(115200);
-  Serial.println("moving");
+  Serial.begin(9600);
+  //Serial.println("moving");
   stepper1.setMaxSpeed(1000);
   stepper1.setAcceleration(1000);
   //stepper1.setSpeed(1000);
@@ -33,19 +33,29 @@ void setup(){
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {  //Wait for connection
       delay(500);
-      Serial.println("Waiting to connect...");
+      //Serial.println("Waiting to connect...");
   }
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
+  //Serial.print("IP address: ");
+  //Serial.println(WiFi.localIP());
   server.begin();
-  Serial.println("server started on local IP");
+  //Serial.println("server started on local IP");
 }
 
 void loop(){
   handler.handleClients();
   int de = handler.getDelay();
+  bool do_de = handler.do_delay();
+  //Serial.print("from the handler got: ");
+  //if(do_de)
+    //Serial.print("do the delay and ");
+  //else
+    //Serial.print("do not do the delay and ");
+  //Serial.print("the delay time is: ");
+  //Serial.println(de);
   if(de == 0){handler.handle_alarm_commands();}
   if(handler.do_delay() && de != 0){
-    delay(de);
+    //Serial.println("doing delay");
+    handler.mark_last_delay();
+    delay(de*1000);
   }
 }
